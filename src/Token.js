@@ -1,39 +1,42 @@
-import React  ,{useState}from 'react';
-import { useLocation,useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import imagen from './img/logotipo jas.jpeg';
 
 export default function Token() {
   const location = useLocation();
   const correo = new URLSearchParams(location.search).get('correo');
   const navigate = useNavigate();
-  const [token,setToken]=useState('')
-  
- 
-
-
-  const data = new FormData();
-  data.append('Correo', correo);
-  data.append('Token', token);
+  const [token, setToken] = useState('');
+  const [error, setError] = useState('');
 
   const handleSubmit = (event) => {
     event.preventDefault();
 
+    const data = new FormData();
+    data.append('Correo', correo);
+    data.append('Token', token);
 
-      fetch(
-        'https://apicasadelmarisco.azurewebsites.net/' +
-          'api/CasaDelMarisco/VerificarToken?Correo=' +
-          correo+"&Token="+Token,
-        {
-          method: 'POST',
-          body: data,
+    fetch(
+      'https://apicasadelmarisco.azurewebsites.net/' +
+        'api/CasaDelMarisco/VerificarToken?Correo=' +
+        correo + '&Token=' + token,
+      {
+        method: 'POST',
+        body: data,
+      }
+    )
+      .then((res) => res.json())
+      .then((result) => {
+        if (result === 'Credenciales validas') {
+          navigate(`/actualizar?correo=${correo}`);
+        } else {
+          setError('El token ingresado no es válido. Por favor, inténtelo nuevamente.');
         }
-      )
-        .then((res) => res.json())
-        .then((result) => {
-          if (result === 'Credenciales validas') {
-            navigate(`/actualizar?correo=${correo}`);
-          } 
-        });
+      })
+      .catch((error) => {
+        console.error('Error:', error);
+        setError('Ocurrió un error al verificar el token. Por favor, inténtelo nuevamente.');
+      });
   };
 
   return (
@@ -45,7 +48,7 @@ export default function Token() {
       <div className="registro-formLogin">
         <p className="loginTitulo">Recuperación</p>
         <label className="loginText">
-          Ingrese el token que se le envio al correo
+          Ingrese el token que se le envió al correo
         </label>
         <form onSubmit={handleSubmit}>
           <label htmlFor="nombre" className="loginLabel">
@@ -56,11 +59,9 @@ export default function Token() {
             required
             value={token}
             onChange={(e) => setToken(e.target.value)}
-           
           />
-         
           <br />
-
+          {error && <p className="error-message">{error}</p>}
           <button className="btn btn-warning text2" type="submit">
             Enviar
           </button>

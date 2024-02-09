@@ -3,6 +3,9 @@ import './registro.css'
 import imagen from './img/imagen1.jpg'
 import { Link } from 'react-router-dom'
 import { useNavigate } from 'react-router-dom';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faEye, faEyeSlash } from '@fortawesome/free-solid-svg-icons';
+
 
 const Registro = () => {
   const navigate = useNavigate();
@@ -12,6 +15,16 @@ const Registro = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [password2, setPassword2] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
+  const [showPassword2, setShowPassword2] = useState(false);
+  const togglePasswordVisibility = () => {
+    setShowPassword(!showPassword);
+  };
+  
+  const togglePasswordVisibility2 = () => {
+    setShowPassword2(!showPassword2);
+  };
+
   const [telefono, setTelefono] = useState('');
   const [fechaNac, setFechaNac] = useState('');
   
@@ -121,7 +134,7 @@ const Registro = () => {
       
     }
     const validateApellidoP =(ApellidoP)=>{
-      const nombreRegex2 = /^[a-zA-Z\s]+$/;
+      const nombreRegex2 = /^[a-zA-Z\u00C0-\u024F\süÜ]+$/;
       if(ApellidoP==''){
         setApellidoPError('No puede estar vacio')
         return false;
@@ -130,7 +143,7 @@ const Registro = () => {
           setApellidoPError('minimo de 5 caracteres')
           return false;
          }else{
-           const nombreRegex2 = /^[a-zA-Z\s]+$/;
+           const nombreRegex2 = /^[a-zA-Z\u00C0-\u024F\süÜ]+$/;
            if (nombreRegex2.test(ApellidoP)){
             setApellidoPError('');
              return true;
@@ -143,7 +156,7 @@ const Registro = () => {
       }
     }
     const validateApellidoM =(ApellidoM)=>{
-      const nombreRegex3 = /^[a-zA-Z\s]+$/;
+      const nombreRegex3 = /^[a-zA-Z\u00C0-\u024F\süÜ]+$/;
       if(ApellidoM==''){
         setApellidoMError('No puede estar vacio')
         return false;
@@ -152,7 +165,7 @@ const Registro = () => {
           setApellidoMError('minimo de 5 caracteres')
           return false;
          }else{
-           const nombreRegex3 = /^[a-zA-Z\s]+$/;
+           const nombreRegex3 = /^[a-zA-Z\u00C0-\u024F\süÜ]+$/;
            if (nombreRegex3.test(ApellidoM)){
             setApellidoMError('');
              return true;
@@ -242,7 +255,7 @@ const Registro = () => {
     };
    
     const validateTelefono = (telefono)=>{
-      const telefonoRegex=/^[1-9]\d*$/;
+      const telefonoRegex=/^\d{10}$/;
       if(telefono==('')){
         setTelefonoError('no puede estar vacio')
         return false;
@@ -250,21 +263,33 @@ const Registro = () => {
         setTelefonoError('');
         return true;
       }else{
-        setTelefonoError('Teléfono no válido');
+        setTelefonoError('Teléfono debe tener exactamente 10 números');
         return false;
       }
     };
 
-    const validateFecha=(fechaNac)=>{
-      if(fechaNac==('')){
-        setFechaError('no puede estar vacio')
+    const validateFecha = (fechaNac) => {
+      if (fechaNac.trim() === '') {
+        setFechaError('No puede estar vacío');
         return false;
-      }else{
-        setFechaError('')
-        return true;
-
+      } else {
+        const fechaNacimiento = new Date(fechaNac);
+        const fechaHoy = new Date();
+        const edad = fechaHoy.getFullYear() - fechaNacimiento.getFullYear();
+        const mes = fechaHoy.getMonth() - fechaNacimiento.getMonth();
+        if (mes < 0 || (mes === 0 && fechaHoy.getDate() < fechaNacimiento.getDate())) {
+          edad--;
+        }
+        if (edad < 18) {
+          setFechaError('Debe ser mayor de 18 años');
+          return false;
+        } else {
+          setFechaError('');
+          return true;
+        }
       }
     };
+    
 
     return (
       <div className="registro-form-containerRegistro">
@@ -333,33 +358,48 @@ const Registro = () => {
         </div>
 
         <div>
-          <label htmlFor="password" className='RegistroLabel'>Contraseña :</label>
-          <input
-            type="password"
-            required
-            id="password"
-            name="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            onBlur={() => validatePassword(password)}
-            className={passwordError ? 'input-error' : ''}
-          />
-          {passwordError && <p className="error-message">{passwordError}</p>}
-        </div>
-        <div>
-          <label htmlFor="password2" className='RegistroLabel'>Repetir contraseña :</label>
-          <input
-            type="password"
-            id="password2"
-            name="password2"
-            value={password2}
-            required
-            onChange={(e) => setPassword2(e.target.value)}
-            onBlur={() => validatePassword2(password2)}
-            className={passwordError2 ? 'input-error' : ''}
-          />
-          {passwordError2 && <p className="error-message">{passwordError2}</p>}
-        </div>
+            <label htmlFor="password" className='RegistroLabel'>Contraseña :</label>
+            <div className="password-input">
+              <input
+                type={showPassword ? "text" : "password"}
+                required
+                id="password"
+                name="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                onBlur={() => validatePassword(password)}
+                className={passwordError ? 'input-error' : ''}
+              />
+              <FontAwesomeIcon
+                icon={showPassword ? faEyeSlash : faEye}
+                className="password-icon"
+                onClick={togglePasswordVisibility}
+              />
+            </div>
+            {passwordError && <p className="error-message">{passwordError}</p>}
+          </div>
+
+          <div>
+            <label htmlFor="password2" className='RegistroLabel'>Repetir contraseña :</label>
+            <div className="password-input">
+              <input
+                type={showPassword2 ? "text" : "password"}
+                id="password2"
+                name="password2"
+                value={password2}
+                required
+                onChange={(e) => setPassword2(e.target.value)}
+                onBlur={() => validatePassword2(password2)}
+                className={passwordError2 ? 'input-error' : ''}
+              />
+              <FontAwesomeIcon
+                icon={showPassword2 ? faEyeSlash : faEye}
+                className="password-icon"
+                onClick={togglePasswordVisibility2}
+              />
+            </div>
+            {passwordError2 && <p className="error-message">{passwordError2}</p>}
+          </div>
         <div>
           <label htmlFor="telefono" className='RegistroLabel'>Telefono* :</label>
           <input
